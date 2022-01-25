@@ -37,6 +37,7 @@ class Board:
     ]
 
     def __init__(self) -> None:
+        self.winner = None
         self.create_new_board()
 
     def create_new_board(self):
@@ -80,39 +81,106 @@ class Board:
                 tracking = self.get_spot(spot)
                 if strip[i-1] == Board.FREE_SPACE:
                     start -= 1
-        sections.append((tracking, (start, Board.BOARD_SIZE - 1)))
+        sections.append((tracking, (start, len(strip) - 1)))
         return sections
 
-    def find_horizontal_sequence_in_row(self, row: int):
+    @staticmethod
+    def get_row(row: int) -> List[Spot]:
         row_spots = []
         for col in range(Board.BOARD_SIZE):
             row_spots.append(Spot(row, col))
-        sections = self.find_contigious_regions(row_spots)
-        sequences = []
+        return row_spots
+
+    @staticmethod
+    def get_column(col: int) -> List[Spot]:
+        col_spots = []
+        for row in range(Board.BOARD_SIZE):
+            col_spots.append(Spot(row, col))
+        return col_spots
+
+    @staticmethod
+    def get_diagonal(start: Spot, end: Spot) -> List[Spot]:
+        spots = []
+
+        num_col = end.col - start.col 
+        num_row = end.row - start.row
+
+        direction = 1 if num_col > 0 else -1
+        num_spots = (abs(num_col) if abs(num_col) < num_row else num_row) + 1
+        for i in range(num_spots):
+            spots.append(Spot(start.row + i, start.col + (i*direction)))
+        return spots
+
+    @staticmethod
+    def pull_sequences_from_sections(sections: List, spots: List[Spot]) -> List[Sequence]:
+        sequences = set()
         for sect in sections:
-            if sect[0] in {Color.BLUE, Color.RED} and sect[1][1] - sect[1][0] + 1 >= 5:
-                sequences.append(sect)
+            if type(sect[0]) is Color and sect[1][1] - sect[1][0] + 1 >= 5:
+                sequences.add(Sequence(sect[0], spots[sect[1][0]], spots[sect[1][1]]))
         return sequences
 
-    def find_horizontal_sequences(self):
+    @staticmethod
+    def get_all_diagonals_endpoints() -> List[Tuple[Spot]]:
+        endpoints = []
+        for i in range(5):
+            endpoints.append((Spot(0,i), Spot(8-i, 8)))
+            endpoints.append((Spot(0, 8-i), Spot(8-i,0)))
+            if i !=4:
+                endpoints.append((Spot(i+1,0), Spot(8, 7-i)))
+                endpoints.append((Spot(7-i,8), Spot(8, i+1)))
+        return endpoints
+
+    def find_sequence_in_strip(self, strip: List[Spot]) -> Set[Sequence]:
+        sections = self.find_contigious_regions(strip)
+        sequences = Board.pull_sequences_from_sections(sections, strip)
+        return sequences
+
+    def find_horizontal_sequences(self) -> Set[Sequence]:
+        sequences = set()
+        for row in range(Board.BOARD_SIZE):
+            row = Board.get_row(row)
+            sequences |= self.find_sequence_in_strip(row)
+        return sequences
+
+    def find_vertical_sequences(self) -> Set[Sequence]:
         sequences = set()
         for col in range(Board.BOARD_SIZE):
-            seqs = self.find_horizontal_sequence_in_row(col)
-            for s in seqs:
-                sequences.add(Sequence(s[0], Spot(col, s[1][0]), Spot(col, s[1][1])))
+            col = Board.get_column(col)
+            sequences |= self.find_sequence_in_strip(col)
         return sequences
 
+    def find_diagonal_sequences(self) -> Set[Sequence]:
+        sequences = set()
+        for start, end in Board.get_all_diagonals_endpoints():
+            diag = Board.get_diagonal(start, end)
+            sequences |= self.find_sequence_in_strip(diag)
+        return sequences
+
+    def find_sequences(self) -> Set[Sequence]:
+        horizontal = self.find_horizontal_sequences()
+        vertical = self.find_vertical_sequences()
+        diagonal = self.find_diagonal_sequences()
+        return diagonal | vertical | horizontal 
+
+    def who_won(self) -> Color:
+        return self.winner
+
+    def is_won(self) -> bool:
+        sequences = self.find_sequences()
+        seq_map = {Color.RED: 0, Color.BLUE:0}
+        for seq in sequences:
+            seq_map[seq.color] += 1
+            if seq_map[seq.color] == 2:
+                self.winner = seq.color
+                return True
+            if seq.end.row - seq.start.row == 8:
+                self.winner = seq.color
+                return True
+            if seq.end.col - seq.start.col == 8:
+                self.winner = seq.color
+                return True
+        return False
 
     def __str__(self) -> str:
-        return "\n".join([" ".join(i) for i in self.chip_placements])
-
-def find_longest_sequence(nums: List[int]):
-    nums.sort()
-    longest_seq = seq = []
-    for i, el in enumerate(nums):
-        seq.append(el)
-        if len(nums) == i + 1 or el + 1 != nums[i+1]:
-            if len(seq) >= len(longest_seq):
-                longest_seq = seq
-            seq = []
-    return longest_seq
+        rep = {Color.BLUE: "B", Color.RED: "R", None: "0"}
+        return "\n".join([" ".join([rep[el] for el in i]) for i in self.chip_placements])
