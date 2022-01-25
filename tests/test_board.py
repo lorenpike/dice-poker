@@ -211,3 +211,8 @@ def test_win_entire_diagonal():
     assert board.is_won() == True
     assert board.who_won() == Color.RED
 
+def test_is_empty():
+    board = Board()
+    assert board.is_empty() == True
+    board.place_blue_chip(0,0)
+    assert board.is_empty() == False

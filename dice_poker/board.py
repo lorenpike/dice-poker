@@ -1,15 +1,10 @@
-from enum import Enum
 from typing import List, NamedTuple, Tuple
 
 from .dice_patterns import * 
-
+from .color import Color
 
 class FreeSpace:
     pass
-
-class Color(Enum):
-    RED = 0
-    BLUE = 1
 
 class Spot(NamedTuple):
     row: int
@@ -43,6 +38,12 @@ class Board:
     def create_new_board(self):
         self.chip_placements = [[None for _ in range(Board.BOARD_SIZE)] for _ in range(Board.BOARD_SIZE)]
 
+    def is_empty(self) -> bool:
+        for row in  self.chip_placements:
+            for el in row:
+                if el is not None:
+                    return False
+        return True
     def place_blue_chip(self, row: int, col: int):
         self.place_chip(Color.BLUE, row, col)
 
@@ -169,18 +170,20 @@ class Board:
         sequences = self.find_sequences()
         seq_map = {Color.RED: 0, Color.BLUE:0}
         for seq in sequences:
-            seq_map[seq.color] += 1
-            if seq_map[seq.color] == 2:
-                self.winner = seq.color
+            color = seq.color
+            seq_map[color] += 1
+            if seq_map[color] == 2:
+                self.winner = color
                 return True
             if seq.end.row - seq.start.row == 8:
-                self.winner = seq.color
+                self.winner = color
                 return True
             if seq.end.col - seq.start.col == 8:
-                self.winner = seq.color
+                self.winner = color
                 return True
         return False
 
     def __str__(self) -> str:
-        rep = {Color.BLUE: "B", Color.RED: "R", None: "0"}
-        return "\n".join([" ".join([rep[el] for el in i]) for i in self.chip_placements])
+        rep = {Color.BLUE: "\033[94mB\033[0m", Color.RED: "\033[91mR\033[0m", None: " "}
+        line_sep = "-"*37
+        return line_sep+"\n"+("\n"+line_sep+"\n").join(["| " + " | ".join([rep[el] for el in i]) + " |" for i in self.chip_placements])+"\n"+line_sep
