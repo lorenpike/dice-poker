@@ -216,3 +216,9 @@ def test_is_empty():
     assert board.is_empty() == True
     board.place_blue_chip(0,0)
     assert board.is_empty() == False
+
+def test_spots_for_a_roll():
+    board = Board()
+    roll = [1,2,3,4,5]
+    assert board.get_spots_from_roll(roll) == {Spot(0,0), Spot(0,8), Spot(8,0), Spot(8,8)}
+    assert board.get_spots_from_roll([1,3,4,2,2]) == {Spot(0,4)}

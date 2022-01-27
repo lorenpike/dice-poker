@@ -4,7 +4,11 @@ from .dice_patterns import *
 from .color import Color
 
 class FreeSpace:
-    pass
+    def check(self, roll):
+        return False
+
+    def __str__(self) -> str:
+        return self.__class__.__name__
 
 class Spot(NamedTuple):
     row: int
@@ -69,6 +73,15 @@ class Board:
     def get_spot(self, spot: Spot):
         Board.is_on_board(spot.row, spot.col)
         return self.chip_placements[spot.row][spot.col]
+
+    def get_spots_from_roll(self, roll: List[int]) -> List[Spot]:
+        spots = set()
+        for i, row in enumerate(Board.BOARD):
+            for j, pattern in enumerate(row):
+                spot = Spot(i,j)
+                if pattern.check(roll) and self.get_spot(spot) is None:
+                    spots.add(spot)
+        return spots
 
     def find_contigious_regions(self, strip: List[Spot]):
         sections = []
