@@ -1,8 +1,15 @@
+from enum import Enum
 from typing import List
 
 from .board import Board, Spot
 from .color import Color
 from .dice import Dice
+
+class Move(Enum):
+    ROLL = 0
+    REROLL = 1
+    PLACE = 2
+    END_TURN = 3
 
 class Game:
     def __init__(self) -> None:

@@ -222,3 +222,9 @@ def test_spots_for_a_roll():
     roll = [1,2,3,4,5]
     assert board.get_spots_from_roll(roll) == {Spot(0,0), Spot(0,8), Spot(8,0), Spot(8,8)}
     assert board.get_spots_from_roll([1,3,4,2,2]) == {Spot(0,4)}
+
+def test_all_spots_from_yahtzee():
+    board = Board()
+    roll = [2,2,2,2,2]
+    assert len(board.get_spots_from_roll(roll)) == 80
+    assert Spot(4,4) not in board.get_spots_from_roll(roll)

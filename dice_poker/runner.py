@@ -30,9 +30,6 @@ def run():
 
     print(game.who_won())
 
-        
-
-
 
 if __name__ == "__main__":
     run()

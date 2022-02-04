@@ -76,11 +76,17 @@ class Board:
 
     def get_spots_from_roll(self, roll: List[int]) -> List[Spot]:
         spots = set()
-        for i, row in enumerate(Board.BOARD):
-            for j, pattern in enumerate(row):
-                spot = Spot(i,j)
-                if pattern.check(roll) and self.get_spot(spot) is None:
-                    spots.add(spot)
+        if not Yahtzee.check(roll):
+            for i, row in enumerate(Board.BOARD):
+                for j, pattern in enumerate(row):
+                    spot = Spot(i,j)
+                    if pattern.check(roll) and self.get_spot(spot) is None:
+                        spots.add(spot)
+        else:
+            for i in range(Board.BOARD_SIZE):
+                for j in range(Board.BOARD_SIZE):
+                    if (i,j) != (4,4):
+                        spots.add(Spot(i,j))
         return spots
 
     def find_contigious_regions(self, strip: List[Spot]):
