@@ -3,12 +3,6 @@ from typing import List, NamedTuple, Tuple
 from .dice_patterns import * 
 from .color import Color
 
-class FreeSpace:
-    def check(self, roll):
-        return False
-
-    def __str__(self) -> str:
-        return self.__class__.__name__
 
 class Spot(NamedTuple):
     row: int
@@ -20,9 +14,9 @@ class Sequence(NamedTuple):
     end: Spot
 
 class Board:
+
     BOARD_SIZE = 9
     FREE_SPACE = Spot(4,4)
-
     BOARD = [
         [Straight(), Double(6,6), Double(5,6), Double(4,6), Pair(2), Double(3,6), Double(2,6), Double(1,6), Straight()],
         [Pair(6), FullHouse(), Double(1,5), Double(2,5), Double(3,5),Double(4,5), Double(5,5), FullHouse(), Pair(4)],
@@ -39,15 +33,12 @@ class Board:
         self.winner = None
         self.create_new_board()
 
-    def create_new_board(self):
+    def create_new_board(self) -> None:
         self.chip_placements = [[None for _ in range(Board.BOARD_SIZE)] for _ in range(Board.BOARD_SIZE)]
 
     def is_empty(self) -> bool:
-        for row in  self.chip_placements:
-            for el in row:
-                if el is not None:
-                    return False
-        return True
+        return all([all([el is None for el in row]) for row in self.chip_placements]) 
+
     def place_blue_chip(self, row: int, col: int):
         self.place_chip(Color.BLUE, row, col)
 
@@ -89,6 +80,29 @@ class Board:
                         spots.add(Spot(i,j))
         return spots
 
+    @classmethod
+    def get_row(cls, row: int) -> List[Spot]:
+        return [Spot(row, col) for col in range(cls.BOARD_SIZE)]
+
+    @classmethod
+    def get_column(cls, col: int) -> List[Spot]:
+        return [Spot(row, col) for row in range(cls.BOARD_SIZE)]
+
+    @staticmethod
+    def get_all_diagonals_endpoints() -> List[Tuple[Spot]]:
+        return ([(Spot(0,i), Spot(8-i, 8)) for i in range(4)] + 
+                [(Spot(0, 8-i), Spot(8-i,0)) for i in range(4)] + 
+                [(Spot(i+1,0), Spot(8, 7-i)) for i in range(4)] + 
+                [(Spot(7-i,8), Spot(8, i+1)) for i in range(4)] +
+                [(Spot(0,4), Spot(4,8)), (Spot(0,4), Spot(4,0))])
+
+    @staticmethod
+    def get_diagonal(start: Spot, end: Spot) -> List[Spot]:
+        num_col, num_row = end.col - start.col, end.row - start.row
+        direction = 1 if num_col > 0 else -1
+        num_spots = (abs(num_col) if abs(num_col) < num_row else num_row) + 1
+        return [Spot(start.row + i, start.col + (i*direction)) for i in range(num_spots)]
+
     def find_contigious_regions(self, strip: List[Spot]):
         sections = []
         first_spot = strip[0]
@@ -105,33 +119,6 @@ class Board:
         return sections
 
     @staticmethod
-    def get_row(row: int) -> List[Spot]:
-        row_spots = []
-        for col in range(Board.BOARD_SIZE):
-            row_spots.append(Spot(row, col))
-        return row_spots
-
-    @staticmethod
-    def get_column(col: int) -> List[Spot]:
-        col_spots = []
-        for row in range(Board.BOARD_SIZE):
-            col_spots.append(Spot(row, col))
-        return col_spots
-
-    @staticmethod
-    def get_diagonal(start: Spot, end: Spot) -> List[Spot]:
-        spots = []
-
-        num_col = end.col - start.col 
-        num_row = end.row - start.row
-
-        direction = 1 if num_col > 0 else -1
-        num_spots = (abs(num_col) if abs(num_col) < num_row else num_row) + 1
-        for i in range(num_spots):
-            spots.append(Spot(start.row + i, start.col + (i*direction)))
-        return spots
-
-    @staticmethod
     def pull_sequences_from_sections(sections: List, spots: List[Spot]) -> List[Sequence]:
         sequences = set()
         for sect in sections:
@@ -139,68 +126,49 @@ class Board:
                 sequences.add(Sequence(sect[0], spots[sect[1][0]], spots[sect[1][1]]))
         return sequences
 
-    @staticmethod
-    def get_all_diagonals_endpoints() -> List[Tuple[Spot]]:
-        endpoints = []
-        for i in range(5):
-            endpoints.append((Spot(0,i), Spot(8-i, 8)))
-            endpoints.append((Spot(0, 8-i), Spot(8-i,0)))
-            if i !=4:
-                endpoints.append((Spot(i+1,0), Spot(8, 7-i)))
-                endpoints.append((Spot(7-i,8), Spot(8, i+1)))
-        return endpoints
-
     def find_sequence_in_strip(self, strip: List[Spot]) -> Set[Sequence]:
         sections = self.find_contigious_regions(strip)
         sequences = Board.pull_sequences_from_sections(sections, strip)
         return sequences
 
-    def find_horizontal_sequences(self) -> Set[Sequence]:
-        sequences = set()
-        for row in range(Board.BOARD_SIZE):
-            row = Board.get_row(row)
-            sequences |= self.find_sequence_in_strip(row)
-        return sequences
-
-    def find_vertical_sequences(self) -> Set[Sequence]:
-        sequences = set()
-        for col in range(Board.BOARD_SIZE):
-            col = Board.get_column(col)
-            sequences |= self.find_sequence_in_strip(col)
-        return sequences
-
-    def find_diagonal_sequences(self) -> Set[Sequence]:
-        sequences = set()
+    @classmethod
+    def get_all_strips(cls) -> List[List[Spot]]:
+        strips = [get(i) for i in range(cls.BOARD_SIZE) for get in [cls.get_column, cls.get_row]]
         for start, end in Board.get_all_diagonals_endpoints():
-            diag = Board.get_diagonal(start, end)
-            sequences |= self.find_sequence_in_strip(diag)
-        return sequences
+            strips.append(Board.get_diagonal(start, end))
+        return strips
 
     def find_sequences(self) -> Set[Sequence]:
-        horizontal = self.find_horizontal_sequences()
-        vertical = self.find_vertical_sequences()
-        diagonal = self.find_diagonal_sequences()
-        return diagonal | vertical | horizontal 
+        strips = Board.get_all_strips() 
+        sequences = set()
+        for strip in strips:
+            sequences |= self.find_sequence_in_strip(strip)
+        return sequences
 
     def who_won(self) -> Color:
-        return self.winner
+        sequences = self.find_sequences()
+        for color in Color:
+            if Board.is_there_a_win(sequences, color):
+                return color
 
     def is_won(self) -> bool:
         sequences = self.find_sequences()
-        seq_map = {Color.RED: 0, Color.BLUE:0}
-        for seq in sequences:
-            color = seq.color
-            seq_map[color] += 1
-            if seq_map[color] == 2:
-                self.winner = color
-                return True
-            if seq.end.row - seq.start.row == 8:
-                self.winner = color
-                return True
-            if seq.end.col - seq.start.col == 8:
-                self.winner = color
-                return True
-        return False
+        return any(Board.is_there_a_win(sequences, color) for color in Color)
+
+    def is_there_a_win(sequences: Set[Sequence], color: Color):
+        return (Board.is_there_a_nine_across(sequences, color) 
+                    or 
+                Board.is_there_two_sequences(sequences, color))
+
+    @staticmethod
+    def is_there_a_nine_across(sequences: Set[Sequence], color: Color) -> bool:
+        return any([
+            9 in ((seq.end.row - seq.start.row + 1), (seq.end.col - seq.start.col + 1)) 
+            and (color == seq.color) for seq in sequences])
+
+    @staticmethod
+    def is_there_two_sequences(sequences: Set[Sequence], color: Color) -> bool:
+        return sum([color == seq.color for seq in sequences]) >= 2
 
     def __str__(self) -> str:
         rep = {Color.BLUE: "\033[94mB\033[0m", Color.RED: "\033[91mR\033[0m", None: " "}

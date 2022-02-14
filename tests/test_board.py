@@ -68,7 +68,7 @@ def test_find_horizontal_sequences():
     for i in range(5):
         board.place_blue_chip(row=0, col=i+1)
     expected = {Sequence(Color.BLUE, Spot(0,1), Spot(0,5))}
-    assert board.find_horizontal_sequences() == expected
+    assert board.find_sequences() == expected
 
 def test_find_two_horizontal_sequences():
     board = Board()
@@ -80,7 +80,7 @@ def test_find_two_horizontal_sequences():
         Sequence(Color.BLUE, Spot(0,1), Spot(0,5)), 
         Sequence(Color.RED, Spot(4,1), Spot(4,5))
     }
-    assert board.find_horizontal_sequences() == expected
+    assert board.find_sequences() == expected
 
 def test_two_sequences_on_middle_row():
     board = Board()
@@ -92,7 +92,7 @@ def test_two_sequences_on_middle_row():
         Sequence(Color.BLUE, Spot(4,0), Spot(4,4)),
         Sequence(Color.RED, Spot(4,4), Spot(4,8))
     }
-    assert board.find_horizontal_sequences() == expected
+    assert board.find_sequences() == expected
 
 def test_find_contiguious_sections_in_list_of_spots():
     board = Board()
@@ -115,7 +115,7 @@ def test_find_vertical_sequences():
         Sequence(Color.BLUE, Spot(0,0), Spot(4,0)),
         Sequence(Color.RED, Spot(2,4), Spot(6,4))
     }
-    assert board.find_vertical_sequences() == expected
+    assert board.find_sequences() == expected
 
 def test_get_main_diagonal():
     expected = []
@@ -153,7 +153,7 @@ def test_find_diagonal_sequences():
         Sequence(Color.BLUE, Spot(1,0), Spot(5,4)),
         Sequence(Color.RED, Spot(4,8), Spot(8,4))
     }
-    assert board.find_diagonal_sequences() == expected
+    assert board.find_sequences() == expected
 
 def test_two_sequences_main_diagonal():
     board = Board()
@@ -164,7 +164,7 @@ def test_two_sequences_main_diagonal():
         Sequence(Color.BLUE, Spot(0,0), Spot(4,4)),
         Sequence(Color.RED, Spot(4,4), Spot(8,8))
     }
-    assert board.find_diagonal_sequences() == expected
+    assert board.find_sequences() == expected
 
 def test_find_sequences():
     board = Board()

@@ -131,4 +131,11 @@ class RollChecker(Pattern):
 
         return set(repr(pattern) for pattern in patterns if pattern.check(roll))
 
-    
+class FreeSpace:
+    def check(self, roll):
+        return False
+
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
+   
