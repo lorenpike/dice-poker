@@ -1,7 +1,7 @@
-# Cache items
-__pycache__
-.pytest_cache
-*.pyc
+# Folders
+venv/
+__pycache__/
 
-# Coverage
-.coverage
+# Files
+*.py[cod]
+.python-version
