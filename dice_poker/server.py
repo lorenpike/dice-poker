@@ -1,5 +1,4 @@
 import logging
-from enum import Enum
 
 import socketio
 from fastapi import FastAPI
@@ -19,13 +18,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 socket_io = socketio.AsyncServer(async_mode="asgi")
 combined_asgi_app = socketio.ASGIApp(socket_io, app)
-
-
-class Event(Enum):
-    WAIT = "waiting_event"
-    START = "start_event"
-    BOARD = "board_event"
-    END = "end_event"
 
 
 class Rooms(dict):
