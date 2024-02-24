@@ -1,11 +1,12 @@
 import logging
 
+import numpy as np
 import socketio
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .game import Game
+from .game import Game, PlayerMove
 from .utils import random_code
 
 # Logging
@@ -75,6 +76,11 @@ class Controller:
         state = self.current_turn()
         await self.notify_game_state(*state)
 
+    async def player_move(self, data):
+        move = PlayerMove(data["type"], data["value"])
+        state = self.current_turn(move)
+        await self.notify_game_state(*state)
+
 
 @app.get("/")
 async def index():
@@ -115,7 +121,8 @@ async def roll_event(socket_id):
 
 
 @socket_io.event
-async def player_move_event(socket_id): ...
+async def player_move_event(socket_id, data):
+    await rooms.via_player[socket_id].player_move(data)
 
 
 @socket_io.event
