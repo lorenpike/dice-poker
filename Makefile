@@ -12,25 +12,24 @@ CYGWIN_PATH := C:\cygwin64 # Modify this to the proper cygwin path
 SHELL := $(CYGWIN_PATH)\bin\bash
 FIND := $(CYGWIN_PATH)\bin\find
 SRC := src
-TESTS := tests
 VENV := venv
 PYTHON := ./$(VENV)/Scripts/python.exe
+UVICORN := ./$(VENV)/Scripts/uvicorn.exe
 
 
 .PHONY: help
 help: 
-	@echo -e 'Metrized Autodocs Makefile$(GRAY)'
+	@echo -e 'Dice Poker Makefile$(GRAY)'
 	@echo 'Usage:'
 	@echo '	make install	Install dependencies and src into a venv.'
 	@echo '	make format	Format the source code in python.'
-	@echo '	make test	Run all the tests for the project.'
+	@echo '	make server	Run up the test server.'
 	@echo -e '	make clean	Remove all python-generated files.$(RESET)'
 
 .PHONY: clean
 clean:
 	@echo 'Cleaning up...'
 	@$(FIND) $(SRC) -regex '^.*\(__pycache__\|\.py[co]\)$ ' -delete
-	@$(FIND) $(TESTS) -regex '^.*\(__pycache__\|\.py[co]\)$ ' -delete
 	@rm -rf $(SRC)/*.egg-info .pytest_cache $(VENV)
 	@echo 'Done!'
 
@@ -45,17 +44,17 @@ format: $(PYTHON)
 	@echo 'Formatting the $(SRC) directory...'
 	@$(PYTHON) -m black $(SRC)
 
-.PHONY: test
-test: $(PYTHON)
-	@echo 'Running tests...'
-	@$(PYTHON) -m pytest $(TESTS)
+.PHONY: server
+server: $(PYTHON)
+	@echo 'Running up dev server...'
+	@$(UVICORN) dice_poker.server:combined_asgi_app --reload
 
 $(PYTHON):
 	@echo 'Creating virtual environment...'
 	@python -m venv $(VENV)
-	@$(PYTHON) -m pip install -q --upgrade pip black pytest
+	@$(PYTHON) -m pip install -q --upgrade pip
 
-$(VENV)/.install-stamp: $(PYTHON) pyproject.toml requirements.txt
+$(VENV)/.install-stamp: $(PYTHON) pyproject.toml
 	@echo -e 'Installing the local package and dependencies...$(GRAY)'
 	@$(PYTHON) -m pip install -e .
 	@touch $@
