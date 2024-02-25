@@ -79,7 +79,15 @@ class Controller:
     async def player_move(self, data):
         move = PlayerMove(data["type"], data["value"])
         state = self.current_turn(move)
-        await self.notify_game_state(*state)
+        if state is not None:
+            await self.notify_game_state(*state)
+        else:
+            await self.notify_game_state(
+                    np.full(5, '-', dtype="U8"),
+                    np.empty((0, 2), dtype=int),
+                    self._game.state,
+            )
+            await socket_io.emit("end_turn_event", room=self.room_id)
 
 
 @app.get("/")
