@@ -14,9 +14,16 @@ let socket = {
   },
 };
 
+let board_socket = {
+  emit: function (e, obj) {
+    console.log(`socket.emit(${e}, ${JSON.stringify(obj)})`);
+  }
+};
+
+
 root.render(
   <div className="flex flex-col items-center">
-    <Board />
+    <Board socket={board_socket}/>
     <Cup disable={false} socket={socket} />
   </div>
 );
