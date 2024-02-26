@@ -4,10 +4,8 @@ document.getElementById('new-game').addEventListener('click', () => {
 });
 
 document.getElementById('join-game').addEventListener('submit', (e) => {
-
     console.log("Join game");
     e.preventDefault();
-
     const gameId = document.getElementById('game-id').value;
     if (!gameId) {
         alert("Please enter a game ID.");

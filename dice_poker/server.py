@@ -40,7 +40,6 @@ class Controller:
         self._game_gen = None
         self.player_1 = None
         self.player_2 = None
-        self.current_turn = None
 
     @property
     def game_loop(self):
@@ -92,19 +91,19 @@ class Controller:
 
 @app.get("/")
 async def index():
-    with open("index.html") as f:
+    with open("static/index.html") as f:
         return HTMLResponse(f.read())
 
 
 @app.get("/game/new")
-async def game():
+async def new_game():
     room = random_code()
     return RedirectResponse(f"/game/{room}")
 
 
 @app.get("/game/{room}")
 async def game(room: str):
-    with open("game.html") as f:
+    with open("static/game.html") as f:
         return HTMLResponse(f.read())
 
 

@@ -2,15 +2,15 @@
 const root = ReactDOM.createRoot(document.getElementById("root"));
 const path = window.location.pathname;
 const room = path.split("/").pop();
-
 const socket = io();
+
 let player_number = null;
 let active_player = false;
 
 const render = () => {
   root.render(
     <div className="flex flex-row justify-evenly align-center">
-      <Board socket={socket} />
+      <Board disable={!active_player} socket={socket} />
       <Cup disable={!active_player} socket={socket} />
     </div>);
 }
@@ -26,7 +26,7 @@ socket.on("waiting_event", () => {
   player_number = 1;
   active_player = true;
   console.log("Currently waiting for another player");
-  root.render(<WaitingRoom />);
+  root.render(<WaitingRoom roomID={room}/>);
 });
 
 socket.on("start_event", () => {
