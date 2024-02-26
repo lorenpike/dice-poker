@@ -1,8 +1,40 @@
 // UI Elements
 
-function WaitingRoom() {
+function URLLink({ url }) {
+  const urlInputRef = React.useRef(null);
+
+  const handleCopy = () => {
+    if (urlInputRef.current) {
+      urlInputRef.current.select();
+      document.execCommand('copy');
+      alert('URL copied to clipboard!');
+    }
+  };
+
   return (
-    <h1>Waiting for another player...</h1>
+    <div className="max-w-md mx-auto bg-white p-6 rounded-md shadow-md">
+      <input
+        ref={urlInputRef}
+        type="text"
+        className="w-full border-gray-300 rounded-md p-2 mb-4"
+        defaultValue= {url}
+      />
+      <button
+        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        onClick={handleCopy}
+      >
+        Copy URL
+      </button>
+    </div>
+  );
+}
+
+function WaitingRoom({ roomID }) {
+  return (
+    <div>
+      <h1>Waiting for another player... </h1>
+      <URLLink url={`http://localhost:3000/game/${roomID}`} />
+    </div>
   );
 }
 function Dice({ value, masked, onClick, disabled }) {
@@ -126,7 +158,7 @@ function NamedTile({text, style, onClick}) {
   );
 }
 
-function Tile({type, value, onClick, state}) {
+function Tile({type, value, onClick, state, disabled}) {
   // state: is x, o, available, disabled
   let color;
   switch (state) {
@@ -150,18 +182,22 @@ function Tile({type, value, onClick, state}) {
     "e": "Lucky 11",
     " ": "Free Space",
   };
+  
+  if  (disabled || state !== "available") {
+    onClick = (e) => {};
+  }
 
   let alignment;
   switch (type) {
     case "d":
       alignment = "grid grid-cols-2 gap-1 content-center p-2";
-      return <PairTile value={value} style={`${alignment} ${style}`} onClick={onClick}/>;
+      return <PairTile value={value} style={`${alignment} ${style}`} onClick={onClick} />;
     case "p":
       alignment = "grid grid-cols-2 gap-1 p-2";
-      return <TwoPairTile pair={value} style={`${alignment} ${style}`} onClick={onClick}/>;
+      return <TwoPairTile pair={value} style={`${alignment} ${style}`} onClick={onClick} />;
     case "t":
       alignment = "grid grid-cols-2 gap-1 p-2";
-      return <TripleTile value={value} style={`${alignment} ${style}`} onClick={onClick}/>;
+      return <TripleTile value={value} style={`${alignment} ${style}`} onClick={onClick} />;
     case "n":
       alignment = "flex justify-center items-center";
       return <NamedTile text={codes[value]} style={`${alignment} ${style}`} onClick={onClick} />;
@@ -169,7 +205,7 @@ function Tile({type, value, onClick, state}) {
   
 }
 
-function Board({ socket }) {
+function Board({ disable, socket }) {
 
   const [placed, setPlaced] = React.useState(Array(9).fill(null).map(() => Array(9).fill('-')));
   const [available, setAvailable] = React.useState([]);
@@ -226,15 +262,13 @@ function Board({ socket }) {
       return isAvailable ? "available" : "disabled";
     };
   }));
-  
-  console.log(tile_state);
 
   return (
     <table className="rounded-xl ring-8 ring-indigo-800 m-4">
       {board.map((row, y) => (
         <tr>
         {row.map((el, x) => (
-          <td><Tile type={el} value={values[y][x]} onClick={onClick(x, y)} state={tile_state[y][x]}/></td>
+          <td><Tile type={el} value={values[y][x]} onClick={onClick(x, y)} state={tile_state[y][x]} disabled={disable}/></td>
         ))}
         </tr>
       ))}
