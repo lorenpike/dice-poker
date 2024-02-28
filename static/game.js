@@ -9,9 +9,9 @@ let active_player = false;
 
 const render = () => {
   root.render(
-    <div className="flex flex-row justify-evenly align-center">
-      <Board disable={!active_player} socket={socket} />
+    <div className="flex flex-col items-center h-dvh">
       <Cup disable={!active_player} socket={socket} />
+      <Board disable={!active_player} socket={socket} />
     </div>);
 }
 

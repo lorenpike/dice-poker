@@ -1,29 +1,25 @@
 // UI Elements
 
-function URLLink({ url }) {
+function URLLink() {
   const urlInputRef = React.useRef(null);
+  const [copied, setCopied] = React.useState(false);
 
   const handleCopy = () => {
     if (urlInputRef.current) {
       urlInputRef.current.select();
       document.execCommand('copy');
-      alert('URL copied to clipboard!');
+      setCopied(true);
     }
   };
 
+  let divStyle = `flex flex-row w-96 bg-gray-200 rounded-md shadow-xl ring-2 ${copied ? "ring-slate-600": "ring-slate-400"}`
+  let btnStyle = `${copied ? "bg-slate-600": "bg-slate-400"} hover:bg-slate-600 text-white font-bold rounded-md p-2`;
+
   return (
-    <div className="max-w-md mx-auto bg-white p-6 rounded-md shadow-md">
-      <input
-        ref={urlInputRef}
-        type="text"
-        className="w-full border-gray-300 rounded-md p-2 mb-4"
-        defaultValue= {url}
-      />
-      <button
-        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-        onClick={handleCopy}
-      >
-        Copy URL
+    <div className={divStyle}>
+      <input type="text" className="w-full ml-4" ref={urlInputRef} defaultValue= {window.location.href} disabled />
+    <button className={btnStyle} onClick={handleCopy} disable={copied}>
+    {copied ? "Copied!" :"Copy"}
       </button>
     </div>
   );
@@ -31,9 +27,9 @@ function URLLink({ url }) {
 
 function WaitingRoom({ roomID }) {
   return (
-    <div>
-      <h1>Waiting for another player... </h1>
-      <URLLink url={`http://localhost:3000/game/${roomID}`} />
+    <div className=" bg-gray-100 flex flex-col justify-center items-center min-h-screen">
+      <h1 className="m-4 text-3xl">Waiting for another player... </h1>
+      <URLLink />
     </div>
   );
 }
@@ -86,7 +82,7 @@ function Cup({ disable,  socket }) {
   });
 
   return (
-    <form className="flex items-center">
+    <form className="flex items-center mt-8">
       <Dice value={dice[0]} masked={mask[0]} onClick={onMask(0)} disabled={disableDice} />
       <Dice value={dice[1]} masked={mask[1]} onClick={onMask(1)} disabled={disableDice} />
       <Dice value={dice[2]} masked={mask[2]} onClick={onMask(2)} disabled={disableDice} />
@@ -102,16 +98,16 @@ function TwoPairTile({pair, style, onClick}) {
 
   return (
     <div className={style} onClick={onClick}>
-      <div key={0} className="aspect-w-1 aspect-h-1">
+      <div key={0} className="aspect-square">
           <img src={`/static/dice-${first}.png`} className="object-cover w-full h-full" />
       </div>
-      <div key={1} className="aspect-w-1 aspect-h-1">
+      <div key={1} className="aspect-square">
           <img src={`/static/dice-${first}.png`} className="object-cover w-full h-full" />
       </div>
-      <div key={2} className="aspect-w-1 aspect-h-1">
+      <div key={2} className="aspect-square">
           <img src={`/static/dice-${second}.png`} className="object-cover w-full h-full" />
       </div>
-      <div key={3} className="aspect-w-1 aspect-h-1">
+      <div key={3} className="aspect-square">
           <img src={`/static/dice-${second}.png`} className="object-cover w-full h-full" />
       </div>
     </div>
@@ -122,10 +118,10 @@ function TwoPairTile({pair, style, onClick}) {
 function PairTile({value, style, onClick}) {
   return (
     <div className={style} onClick={onClick}>
-      <div key={0} className="aspect-w-1 aspect-h-1">
+      <div key={0} className="aspect-square">
           <img src={`/static/dice-${value}.png`} className="object-cover w-full" />
       </div>
-      <div key={1} className="aspect-w-1 aspect-h-1">
+      <div key={1} className="aspect-square">
           <img src={`/static/dice-${value}.png`} className="object-cover w-full" />
       </div>
     </div>
@@ -136,13 +132,13 @@ function PairTile({value, style, onClick}) {
 function TripleTile({value, style, onClick}) {
   return (
     <div className={style} onClick={onClick}>
-      <div key={0} className="aspect-w-1 aspect-h-1">
+      <div key={0} className="aspect-square">
           <img src={`/static/dice-${value}.png`} className="object-cover w-full" />
       </div>
-      <div key={2} className="aspect-w-1 aspect-h-1">
+      <div key={2} className="aspect-square">
           <img src={`/static/dice-${value}.png`} className="object-cover w-full" />
       </div>
-      <div key={3} className="aspect-w-1 aspect-h-1">
+      <div key={3} className="aspect-square">
           <img src={`/static/dice-${value}.png`} className="object-cover w-full" />
       </div>
     </div>
@@ -174,7 +170,7 @@ function Tile({type, value, onClick, state, disabled}) {
     default:
       color = "bg-indigo-200";
   }
-  let style =`w-24 h-24 border-4 border-stone-900 rounded-xl ${color} font-bold text-xl text-center`;
+  let style =`h-20 w-20 rounded-md ${color} font-bold text-l text-center m-0.5`;
   let codes = {
     "s": "Straight",
     "f": "Full House",
@@ -199,7 +195,7 @@ function Tile({type, value, onClick, state, disabled}) {
       alignment = "grid grid-cols-2 gap-1 p-2";
       return <TripleTile value={value} style={`${alignment} ${style}`} onClick={onClick} />;
     case "n":
-      alignment = "flex justify-center items-center";
+      alignment = "flex justify-center items-center p-2";
       return <NamedTile text={codes[value]} style={`${alignment} ${style}`} onClick={onClick} />;
   }
   
@@ -213,6 +209,7 @@ function Board({ disable, socket }) {
   const onClick = (x, y) => {
     return (event) => {
       event.preventDefault();
+      console.log(x, y);
       socket.emit("player_move_event", {
         type: "place",
         value: [x, y],
@@ -257,22 +254,24 @@ function Board({ disable, socket }) {
     if (el !== "-") {
       return el;
     } else {
-      let coords = [y, x];
+      let coords = [x, y];
       let isAvailable = available.some(pair => pair.every((v, i) => v === coords[i]));
       return isAvailable ? "available" : "disabled";
     };
   }));
 
   return (
-    <table className="rounded-xl ring-8 ring-indigo-800 m-4">
-      {board.map((row, y) => (
-        <tr>
-        {row.map((el, x) => (
-          <td><Tile type={el} value={values[y][x]} onClick={onClick(x, y)} state={tile_state[y][x]} disabled={disable}/></td>
+    <div className="flex justify-center items-center h-full w-full m-auto">
+      <table className="h-min w-min">
+        {board.map((row, y) => (
+          <tr>
+          {row.map((el, x) => (
+            <td><Tile type={el} value={values[y][x]} onClick={onClick(x, y)} state={tile_state[y][x]} disabled={disable}/></td>
+          ))}
+          </tr>
         ))}
-        </tr>
-      ))}
-    </table>
+      </table>
+    </div>
   );
 }
 
