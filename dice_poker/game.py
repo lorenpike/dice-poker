@@ -126,7 +126,7 @@ def valid_placements(matches: list) -> np.ndarray:
 def get_indices(array: np.ndarray):
     assert array.dtype == np.bool_
     indices = np.stack(np.meshgrid(*(range(v) for v in array.shape)), axis=-1)
-    return np.flip(indices[array], axis=-1)
+    return indices[array]
 
 
 GameState = namedtuple("GameState", "dice options board")

@@ -15,6 +15,9 @@ let socket = {
 };
 
 let board_socket = {
+  on: function (e, callback) {
+    console.log(`socket.on(${e}, callback)`);
+  },
   emit: function (e, obj) {
     console.log(`socket.emit(${e}, ${JSON.stringify(obj)})`);
   }
@@ -22,8 +25,8 @@ let board_socket = {
 
 
 root.render(
-  <div className="flex flex-col items-center">
-    <Board socket={board_socket}/>
+  <div className="flex flex-col items-center h-dvh">
     <Cup disable={false} socket={socket} />
+    <Board socket={board_socket}/>
   </div>
 );
